@@ -1,4 +1,6 @@
 // SFML
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -93,7 +95,13 @@ public:
         while (window.isOpen()) {
             handleEvents();
             render();
-            checkField();
+            bool checked = checkField();
+            if (!gameOver && ballIsTransfer) {
+                ballIsTransfer = false;
+                if(!checked) {
+                    generateBalls();
+                }
+            }
         }        
     }
 
@@ -115,7 +123,7 @@ private:
 
     const sf::Color backgroundColor = sf::Color(40, 42, 54);
 
-    const int countGenerateBalls = (rows + cols) / 4;
+    const int countGenerateBalls = (rows + cols) / 6;
     const int maxGeneratorIterations = rows * cols;
 
     int score = 0;
@@ -129,6 +137,7 @@ private:
     sf::Vector2i lastMousePosition;
     bool lastMouseClickState = false;
     Ball grabedBall{Ball::Type::None};
+    bool ballIsTransfer = false;
 
     void handleEvents() {
         while ((event = window.pollEvent())) {
@@ -142,7 +151,6 @@ private:
             } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && lastMouseClickState && !gameOver) {
                 lastMouseClickState = false;
                 mouseClick();
-                //generateBalls();
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) {
@@ -196,6 +204,7 @@ private:
         if ( 
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
             ((targetPosition.x < cols) && (targetPosition.y < rows)) &&
+            (grabedBall.type == Ball::Type::None) &&
             (field[targetPosition.x][targetPosition.y].type != Ball::Type::None)
         ) {
             //puts("Grab!");
@@ -205,12 +214,14 @@ private:
         } else if (
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
             ((targetPosition.x < cols) && (targetPosition.y < rows)) &&
-            (grabedBall.type != Ball::Type::None)
+            (grabedBall.type != Ball::Type::None) &&
+            (field[targetPosition.x][targetPosition.y].type == Ball::Type::None)
         ) {
             //puts("Put!");
             field[targetPosition.x][targetPosition.y].type = grabedBall.type;
             grabedBall.type = Ball::Type::None;
             window.setMouseCursorVisible(true);
+            ballIsTransfer = true;
         }
     }
 
@@ -244,12 +255,82 @@ private:
         generateBalls();
     }
 
-    void checkField() {
-        for (int c = 1; c < cols - 1; c++) {
-            for (int r = 1; r < rows - 1; r++) {
-                
+    bool checkField() {
+        return (
+            checkVertical() ||
+            checkHorizont() ||
+            checkDiagonalLeft()
+        );
+    }
+
+    bool checkVertical() {
+        bool returned = false;
+        for (int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                if (
+                    (field[c][r].type != Ball::Type::None) &&
+                    (r + 1 < rows && r + 2 < rows)
+                ) {
+                    Ball::Type targetType = field[c][r].type;
+                    if (targetType == field[c][r + 1].type && targetType == field[c][r + 2].type) {
+                        int len = 3;
+                        returned = true;
+                        field[c][r].type = Ball::Type::None;
+                        field[c][r + 1].type = Ball::Type::None;
+                        field[c][r + 2].type = Ball::Type::None;
+                        while (
+                            (r + len < rows) &&
+                            (targetType == field[c][r + len].type)
+                        ) {
+                            field[c][r + len].type = Ball::Type::None;
+                            len++;
+                        }
+                        r += len;
+                        score += len;
+                    }
+                }
             }
         }
+        return returned;
+    }
+
+    bool checkHorizont() {
+        bool returned = false;
+        for (int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                if (
+                    (field[c][r].type != Ball::Type::None) &&
+                    (c + 1 < cols && c + 2 < cols)
+                ) {
+                    Ball::Type targetType = field[c][r].type;
+                    if (targetType == field[c + 1][r].type && targetType == field[c + 2][r].type) {
+                        int len = 3;
+                        returned = true;
+                        field[c][r].type = Ball::Type::None;
+                        field[c + 1][r].type = Ball::Type::None;
+                        field[c + 2][r].type = Ball::Type::None;
+                        while (
+                            (c + len < cols) &&
+                            (targetType == field[c + len][r].type)
+                        ) {
+                            field[c + len][r].type = Ball::Type::None;
+                            len++;
+                        }
+                        r += len;
+                        score += len;
+                    }
+                }
+            }
+        }
+        return returned;
+    }
+
+    bool checkDiagonalLeft() {
+        bool returned = false;
+        
+        // ...
+
+        return returned;
     }
 };
 
