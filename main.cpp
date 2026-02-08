@@ -1,11 +1,15 @@
 // SFML
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 // Other
+#include <SFML/Window/Mouse.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -40,7 +44,8 @@ public:
     Game() : 
         window(sf::VideoMode({800, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
         gameOverText(font),
-        scoreText(font)
+        scoreText(font),
+        comboText(font)
     {
         window.setFramerateLimit(60);
         sf::Vector2u resolution = window.getSize();
@@ -57,15 +62,22 @@ public:
         gameOverText.setCharacterSize(48);
         gameOverText.setFillColor(sf::Color::Red);
         gameOverText.setPosition({
-            float(resolution.x - gameOverText.getCharacterSize() * gameOverText.getString().getSize()), 
+            float((resolution.x / 2) - (gameOverText.getCharacterSize() * float(gameOverText.getString().getSize()) * 0.33f)), 
             float(resolution.y - gameOverText.getCharacterSize() * 1.75),
         });
 
         scoreText.setCharacterSize(48);
         scoreText.setFillColor(sf::Color(60, 62, 80));
         scoreText.setPosition({
-            float(scoreText.getCharacterSize()),
+            float(scoreText.getCharacterSize() * 0.25f),
             float(resolution.y - scoreText.getCharacterSize() * 1.75),
+        });
+
+        comboText.setCharacterSize(48);
+        comboText.setFillColor(sf::Color(60, 62, 80));
+        comboText.setPosition({
+            float(resolution.x - comboText.getCharacterSize() * 2),
+            float(resolution.y - comboText.getCharacterSize() * 1.75),
         });
 
         field.resize(cols);
@@ -81,8 +93,11 @@ public:
         tileSize = (rs > cs ? cs : rs);
         ballSize = tileSize * 0.33f;
         ballCenterPosition = ballSize / 2.f;
-
         ball.setRadius(ballSize);
+
+        grabedRing.setRadius(ballSize);
+        grabedRing.setOutlineThickness(5);
+        grabedRing.setFillColor(sf::Color::Transparent);
 
         tile.setFillColor(sf::Color(50, 52, 70));
         tile.setSize({tileSize, tileSize});
@@ -92,14 +107,17 @@ public:
 
     void run() {
         generateBalls();
+        bool checked = false;
         while (window.isOpen()) {
             handleEvents();
             render();
-            bool checked = checkField();
+
+            checked = checkField();
             if (!gameOver && ballIsTransfer) {
                 ballIsTransfer = false;
                 if(!checked) {
                     generateBalls();
+                    combo = 1;
                 }
             }
         }        
@@ -118,25 +136,30 @@ private:
     float ballCenterPosition;
     sf::RectangleShape tile;
     sf::CircleShape ball;
+    sf::CircleShape grabedRing;
     const int outlineSize = 2.f;
     const int spaceOutlineSize = outlineSize * 2;
 
     const sf::Color backgroundColor = sf::Color(40, 42, 54);
 
-    const int countGenerateBalls = (rows + cols) / 6;
-    const int maxGeneratorIterations = rows * cols;
+    const int countGenerateBalls = (rows + cols);
+    const int maxGeneratorIterations = rows * cols * 0.5f;
 
     int score = 0;
     bool gameOver = false;
     std::optional<sf::Event> event;
+    int combo = 1;
 
     sf::Font font;
     sf::Text scoreText;
     sf::Text gameOverText;
+    sf::Text comboText;
 
     sf::Vector2i lastMousePosition;
+    sf::Vector2i lastTargetPosition;
     bool lastMouseClickState = false;
     Ball grabedBall{Ball::Type::None};
+
     bool ballIsTransfer = false;
 
     void handleEvents() {
@@ -174,7 +197,9 @@ private:
         }
 
         scoreText.setString(std::to_string(score));
+        comboText.setString('x' + std::to_string(combo));
         window.draw(scoreText);
+        window.draw(comboText);
 
         if (gameOver) {
             window.draw(gameOverText);
@@ -186,6 +211,7 @@ private:
             ball.setPosition({(float)lastMousePosition.x, (float)lastMousePosition.y});
             ball.setFillColor(grabedBall.getColor());
             window.draw(ball);
+            window.draw(grabedRing);
         }
 
         window.display();
@@ -211,6 +237,12 @@ private:
             grabedBall.type = field[targetPosition.x][targetPosition.y].type;
             field[targetPosition.x][targetPosition.y].type = Ball::Type::None;
             window.setMouseCursorVisible(false);
+
+            grabedRing.setPosition({
+                (targetPosition.x * tileSize) + ballCenterPosition + spaceOutlineSize,
+                (targetPosition.y * tileSize) + ballCenterPosition + spaceOutlineSize,
+            });
+            grabedRing.setOutlineColor(grabedBall.getColor());
         } else if (
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
             ((targetPosition.x < cols) && (targetPosition.y < rows)) &&
@@ -221,8 +253,12 @@ private:
             field[targetPosition.x][targetPosition.y].type = grabedBall.type;
             grabedBall.type = Ball::Type::None;
             window.setMouseCursorVisible(true);
-            ballIsTransfer = true;
+            
+            if (lastTargetPosition != targetPosition) {
+                ballIsTransfer = true;
+            }
         }
+        lastTargetPosition = targetPosition;
     }
 
     void generateBalls() {
@@ -259,7 +295,8 @@ private:
         return (
             checkVertical() ||
             checkHorizont() ||
-            checkDiagonalLeft()
+            checkDiagonalDownRight() ||
+            checkDiagonalUpRight()
         );
     }
 
@@ -286,7 +323,8 @@ private:
                             len++;
                         }
                         r += len;
-                        score += len;
+                        score += len * combo;
+                        combo++;
                     }
                 }
             }
@@ -317,7 +355,8 @@ private:
                             len++;
                         }
                         r += len;
-                        score += len;
+                        score += len * combo;
+                        combo++;
                     }
                 }
             }
@@ -325,11 +364,71 @@ private:
         return returned;
     }
 
-    bool checkDiagonalLeft() {
+    bool checkDiagonalDownRight() {
         bool returned = false;
-        
-        // ...
+        for (int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                if (
+                    (field[c][r].type != Ball::Type::None) &&
+                    (c + 1 < cols && c + 2 < cols) &&
+                    (r + 1 < rows && r + 2 < rows)
+                ) {
+                    Ball::Type targetType = field[c][r].type;
+                    if (targetType == field[c + 1][r + 1].type && targetType == field[c + 2][r + 2].type) {
+                        int len = 3;
+                        returned = true;
+                        field[c][r].type = Ball::Type::None;
+                        field[c + 1][r + 1].type = Ball::Type::None;
+                        field[c + 2][r + 2].type = Ball::Type::None;
+                        while (
+                            (c + len < cols) &&
+                            (r + len < rows) &&
+                            (targetType == field[c + len][r + len].type)
+                        ) {
+                            field[c + len][r + len].type = Ball::Type::None;
+                            len++;
+                        }
+                        r += len;
+                        score += len * combo;
+                        combo++;
+                    }
+                }
+            }
+        }
+        return returned;
+    }
 
+    bool checkDiagonalUpRight() {
+        bool returned = false;
+        for (int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                if (
+                    (field[c][r].type != Ball::Type::None) &&
+                    (c + 1 < cols && c + 2 < cols) &&
+                    (r - 1 >= 0 && r - 2 >= 0)
+                ) {
+                    Ball::Type targetType = field[c][r].type;
+                    if (targetType == field[c + 1][r - 1].type && targetType == field[c + 2][r - 2].type) {
+                        int len = 3;
+                        returned = true;
+                        field[c][r].type = Ball::Type::None;
+                        field[c + 1][r - 1].type = Ball::Type::None;
+                        field[c + 2][r - 2].type = Ball::Type::None;
+                        while (
+                            (c + len < cols) &&
+                            (r - len >= 0) &&
+                            (targetType == field[c + len][r - len].type)
+                        ) {
+                            field[c + len][r - len].type = Ball::Type::None;
+                            len++;
+                        }
+                        r += len;
+                        score += len * combo;
+                        combo++;
+                    }
+                }
+            }
+        }
         return returned;
     }
 };
