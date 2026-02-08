@@ -1,15 +1,9 @@
 // SFML
-#include <SFML/Graphics/CircleShape.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/Graphics/Text.hpp>
-#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 // Other
-#include <SFML/Window/Mouse.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -62,7 +56,7 @@ public:
         gameOverText.setCharacterSize(48);
         gameOverText.setFillColor(sf::Color::Red);
         gameOverText.setPosition({
-            float((resolution.x / 2) - (gameOverText.getCharacterSize() * float(gameOverText.getString().getSize()) * 0.33f)), 
+            float((resolution.x * 0.5f) - (gameOverText.getCharacterSize() * float(gameOverText.getString().getSize()) * 0.33f)), 
             float(resolution.y - gameOverText.getCharacterSize() * 1.75),
         });
 
@@ -128,8 +122,8 @@ private:
 
     std::vector<std::vector<Ball>> field;
 
-    const int rows = 12;
-    const int cols = 12;
+    const int rows = 14;
+    const int cols = 14;
 
     float tileSize;
     float ballSize;
@@ -157,6 +151,7 @@ private:
 
     sf::Vector2i lastMousePosition;
     sf::Vector2i lastTargetPosition;
+    sf::Vector2i lastGrabedMousePosition;
     bool lastMouseClickState = false;
     Ball grabedBall{Ball::Type::None};
 
@@ -207,7 +202,6 @@ private:
 
         if (grabedBall.type != Ball::Type::None) {
             lastMousePosition = sf::Mouse::getPosition(window);
-            //printf("X - %d | Y - %d\n", lastMousePosition.x, lastMousePosition.y);
             ball.setPosition({(float)lastMousePosition.x, (float)lastMousePosition.y});
             ball.setFillColor(grabedBall.getColor());
             window.draw(ball);
@@ -219,13 +213,10 @@ private:
 
     void mouseClick() {
         lastMousePosition = sf::Mouse::getPosition(window);
-        //printf("X - %d\tY - %d\n", lastMousePosition.x, lastMousePosition.y);
 
         sf::Vector2i targetPosition;
         targetPosition.x = lastMousePosition.x / tileSize;
         targetPosition.y = lastMousePosition.y / tileSize;
-        
-        //printf("TargetPos : X - %d | Y - %d\n", targetPosition.x, targetPosition.y);
 
         if ( 
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
@@ -243,6 +234,7 @@ private:
                 (targetPosition.y * tileSize) + ballCenterPosition + spaceOutlineSize,
             });
             grabedRing.setOutlineColor(grabedBall.getColor());
+            lastGrabedMousePosition = targetPosition;
         } else if (
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
             ((targetPosition.x < cols) && (targetPosition.y < rows)) &&
@@ -254,7 +246,7 @@ private:
             grabedBall.type = Ball::Type::None;
             window.setMouseCursorVisible(true);
             
-            if (lastTargetPosition != targetPosition) {
+            if (lastGrabedMousePosition != targetPosition) {
                 ballIsTransfer = true;
             }
         }
