@@ -293,7 +293,6 @@ private:
     }
 
     bool checkVertical() {
-        bool returned = false;
         for (int c = 0; c < cols; c++) {
             for (int r = 0; r < rows; r++) {
                 if (
@@ -303,7 +302,6 @@ private:
                     Ball::Type targetType = field[c][r].type;
                     if (targetType == field[c][r + 1].type && targetType == field[c][r + 2].type) {
                         int len = 3;
-                        returned = true;
                         field[c][r].type = Ball::Type::None;
                         field[c][r + 1].type = Ball::Type::None;
                         field[c][r + 2].type = Ball::Type::None;
@@ -317,15 +315,15 @@ private:
                         r += len;
                         score += len * combo;
                         combo++;
+                        return true;
                     }
                 }
             }
         }
-        return returned;
+        return false;
     }
 
     bool checkHorizont() {
-        bool returned = false;
         for (int c = 0; c < cols; c++) {
             for (int r = 0; r < rows; r++) {
                 if (
@@ -335,7 +333,6 @@ private:
                     Ball::Type targetType = field[c][r].type;
                     if (targetType == field[c + 1][r].type && targetType == field[c + 2][r].type) {
                         int len = 3;
-                        returned = true;
                         field[c][r].type = Ball::Type::None;
                         field[c + 1][r].type = Ball::Type::None;
                         field[c + 2][r].type = Ball::Type::None;
@@ -349,15 +346,15 @@ private:
                         r += len;
                         score += len * combo;
                         combo++;
+                        return true;
                     }
                 }
             }
         }
-        return returned;
+        return false;
     }
 
     bool checkDiagonalDownRight() {
-        bool returned = false;
         for (int c = 0; c < cols; c++) {
             for (int r = 0; r < rows; r++) {
                 if (
@@ -368,7 +365,6 @@ private:
                     Ball::Type targetType = field[c][r].type;
                     if (targetType == field[c + 1][r + 1].type && targetType == field[c + 2][r + 2].type) {
                         int len = 3;
-                        returned = true;
                         field[c][r].type = Ball::Type::None;
                         field[c + 1][r + 1].type = Ball::Type::None;
                         field[c + 2][r + 2].type = Ball::Type::None;
@@ -383,15 +379,15 @@ private:
                         r += len;
                         score += len * combo;
                         combo++;
+                        return true;
                     }
                 }
             }
         }
-        return returned;
+        return false;
     }
 
     bool checkDiagonalUpRight() {
-        bool returned = false;
         for (int c = 0; c < cols; c++) {
             for (int r = 0; r < rows; r++) {
                 if (
@@ -402,7 +398,6 @@ private:
                     Ball::Type targetType = field[c][r].type;
                     if (targetType == field[c + 1][r - 1].type && targetType == field[c + 2][r - 2].type) {
                         int len = 3;
-                        returned = true;
                         field[c][r].type = Ball::Type::None;
                         field[c + 1][r - 1].type = Ball::Type::None;
                         field[c + 2][r - 2].type = Ball::Type::None;
@@ -417,11 +412,12 @@ private:
                         r += len;
                         score += len * combo;
                         combo++;
+                        return true;
                     }
                 }
             }
         }
-        return returned;
+        return false;
     }
 };
 
