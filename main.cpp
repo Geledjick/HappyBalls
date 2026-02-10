@@ -1,13 +1,16 @@
 // SFML
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 // Other
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <optional>
+#include <queue>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -36,7 +39,7 @@ struct Ball {
 class Game {
 public:
     Game() : 
-        window(sf::VideoMode({800, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
+        window(sf::VideoMode({804, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
         gameOverText(font),
         scoreText(font),
         comboText(font)
@@ -74,13 +77,16 @@ public:
             float(resolution.y - comboText.getCharacterSize() * 1.75),
         });
 
-        field.resize(cols);
-        for (std::vector<Ball> &row : field) {
-            row.resize(rows);
+        for (std::array<Ball, rows> &row : field) {
             for (Ball &ball : row) {
                 ball.type = Ball::Type::None;
             }
         }
+
+        directions[0] = {0, 1};
+        directions[1] = {0, -1};
+        directions[2] = {1, 0};
+        directions[3] = {-1, 0};
 
         int rs = resolution.x / rows;
         int cs = resolution.y / cols;
@@ -106,7 +112,12 @@ public:
             handleEvents();
             render();
 
-            checked = checkField();
+            checked = (
+                checkVertical() ||
+                checkHorizont() ||
+                checkDiagonalDownRight() ||
+                checkDiagonalUpRight()
+            );
             if (!gameOver && ballIsTransfer) {
                 ballIsTransfer = false;
                 if(!checked) {
@@ -120,10 +131,10 @@ public:
 private:
     sf::RenderWindow window;
 
-    std::vector<std::vector<Ball>> field;
+    static const int cols = 14;
+    static const int rows = 14;
 
-    const int rows = 14;
-    const int cols = 14;
+    std::array<std::array<Ball, rows>, cols> field;
 
     float tileSize;
     float ballSize;
@@ -156,6 +167,7 @@ private:
     Ball grabedBall{Ball::Type::None};
 
     bool ballIsTransfer = false;
+    std::array<sf::Vector2i, 4> directions;
 
     void handleEvents() {
         while ((event = window.pollEvent())) {
@@ -215,8 +227,8 @@ private:
         lastMousePosition = sf::Mouse::getPosition(window);
 
         sf::Vector2i targetPosition;
-        targetPosition.x = lastMousePosition.x / tileSize;
-        targetPosition.y = lastMousePosition.y / tileSize;
+        targetPosition.x = (lastMousePosition.x / tileSize);
+        targetPosition.y = (lastMousePosition.y / tileSize);
 
         if ( 
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
@@ -239,7 +251,8 @@ private:
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
             ((targetPosition.x < cols) && (targetPosition.y < rows)) &&
             (grabedBall.type != Ball::Type::None) &&
-            (field[targetPosition.x][targetPosition.y].type == Ball::Type::None)
+            (field[targetPosition.x][targetPosition.y].type == Ball::Type::None) &&
+            (findPath(targetPosition))
         ) {
             //puts("Put!");
             field[targetPosition.x][targetPosition.y].type = grabedBall.type;
@@ -251,6 +264,39 @@ private:
             }
         }
         lastTargetPosition = targetPosition;
+    }
+
+    bool findPath(sf::Vector2i targetPosition) {
+        std::queue<sf::Vector2i> queue;
+        queue.push(lastGrabedMousePosition);
+
+        std::vector<std::vector<bool>> visited(cols, std::vector<bool>(rows, false));
+        visited[lastGrabedMousePosition.x][lastGrabedMousePosition.y] = true;
+        
+        while (!queue.empty()) {
+            sf::Vector2i vec = queue.front();
+            queue.pop();
+
+            if (vec.x == targetPosition.x && vec.y == targetPosition.y) {
+                return true;
+            }
+
+            sf::Vector2i nvec;
+            for (int i = 0; i < 4; i++) {
+                nvec = {vec.x + directions[i].x, vec.y + directions[i].y};
+
+                if (
+                    (nvec.x >= 0) && (nvec.y >= 0) &&
+                    (nvec.x < cols) && (nvec.y < rows) &&
+                    field[nvec.x][nvec.y].type ==  Ball::Type::None &&
+                    !visited[nvec.x][nvec.y]
+                ) {
+                    visited[nvec.x][nvec.y] = true;
+                    queue.push(nvec);
+                }
+            }
+        }
+        return false;
     }
 
     void generateBalls() {
@@ -273,23 +319,15 @@ private:
 
     void resetGame() {
         score = 0;
+        combo = 1;
         gameOver = false;
-        for (std::vector<Ball> &row : field) {
+        for (std::array<Ball, rows> &row : field) {
             for (Ball &ball : row) {
                 ball.type = Ball::Type::None;
             }
         }
         grabedBall.type = Ball::Type::None;
         generateBalls();
-    }
-
-    bool checkField() {
-        return (
-            checkVertical() ||
-            checkHorizont() ||
-            checkDiagonalDownRight() ||
-            checkDiagonalUpRight()
-        );
     }
 
     bool checkVertical() {
