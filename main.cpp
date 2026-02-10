@@ -1,5 +1,4 @@
 // SFML
-#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -39,7 +38,7 @@ struct Ball {
 class Game {
 public:
     Game() : 
-        window(sf::VideoMode({804, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
+        window(sf::VideoMode({808, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
         gameOverText(font),
         scoreText(font),
         comboText(font)
@@ -58,24 +57,12 @@ public:
         gameOverText.setString("GAME OVER");
         gameOverText.setCharacterSize(48);
         gameOverText.setFillColor(sf::Color::Red);
-        gameOverText.setPosition({
-            float((resolution.x * 0.5f) - (gameOverText.getCharacterSize() * float(gameOverText.getString().getSize()) * 0.33f)), 
-            float(resolution.y - gameOverText.getCharacterSize() * 1.75),
-        });
 
         scoreText.setCharacterSize(48);
         scoreText.setFillColor(sf::Color(60, 62, 80));
-        scoreText.setPosition({
-            float(scoreText.getCharacterSize() * 0.25f),
-            float(resolution.y - scoreText.getCharacterSize() * 1.75),
-        });
 
         comboText.setCharacterSize(48);
         comboText.setFillColor(sf::Color(60, 62, 80));
-        comboText.setPosition({
-            float(resolution.x - comboText.getCharacterSize() * 2),
-            float(resolution.y - comboText.getCharacterSize() * 1.75),
-        });
 
         for (std::array<Ball, rows> &row : field) {
             for (Ball &ball : row) {
@@ -88,21 +75,14 @@ public:
         directions[2] = {1, 0};
         directions[3] = {-1, 0};
 
-        int rs = resolution.x / rows;
-        int cs = resolution.y / cols;
-        tileSize = (rs > cs ? cs : rs);
-        ballSize = tileSize * 0.33f;
-        ballCenterPosition = ballSize / 2.f;
-        ball.setRadius(ballSize);
-
-        grabedRing.setRadius(ballSize);
         grabedRing.setOutlineThickness(5);
         grabedRing.setFillColor(sf::Color::Transparent);
 
         tile.setFillColor(sf::Color(50, 52, 70));
-        tile.setSize({tileSize, tileSize});
         tile.setOutlineColor(sf::Color(68, 71, 90));
         tile.setOutlineThickness(outlineSize);
+
+        resizeWindow();
     }
 
     void run() {
@@ -175,6 +155,10 @@ private:
                 window.close();
                 return;
             }
+            
+            //if (event->is<sf::Event::Resized>()) {
+            //    resizeWindow();
+            //}
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !lastMouseClickState && !gameOver) {
                 lastMouseClickState = true;
@@ -187,6 +171,37 @@ private:
                 resetGame();
             }
         }
+    }
+
+    void resizeWindow() {
+        // puts("Resized!");
+        sf::Vector2u resolution = window.getSize();
+        int rs = (resolution.x - spaceOutlineSize * 2) / rows;
+        int cs = (resolution.y - spaceOutlineSize * 2) / cols;
+        tileSize = (rs > cs ? cs : rs);
+        ballSize = tileSize * 0.33f;
+        ballCenterPosition = ballSize / 2.f;
+
+        ball.setRadius(ballSize);
+        grabedRing.setRadius(ballSize);
+        tile.setSize({tileSize, tileSize});
+
+        gameOverText.setPosition({
+            float((resolution.x * 0.5f) -
+            (gameOverText.getCharacterSize() *
+            float(gameOverText.getString().getSize()) * 0.33f)),
+            float(resolution.y - gameOverText.getCharacterSize() * 1.75),
+        });
+
+        scoreText.setPosition({
+            float(scoreText.getCharacterSize() * 0.25f),
+            float(resolution.y - scoreText.getCharacterSize() * 1.75),
+        });
+
+        comboText.setPosition({
+            float(resolution.x - comboText.getCharacterSize() * 2),
+            float(resolution.y - comboText.getCharacterSize() * 1.75),
+        });
     }
 
     void render() {
@@ -227,8 +242,8 @@ private:
         lastMousePosition = sf::Mouse::getPosition(window);
 
         sf::Vector2i targetPosition;
-        targetPosition.x = (lastMousePosition.x / tileSize);
-        targetPosition.y = (lastMousePosition.y / tileSize);
+        targetPosition.x = (lastMousePosition.x - spaceOutlineSize) / tileSize;
+        targetPosition.y = (lastMousePosition.y - spaceOutlineSize) / tileSize;
 
         if ( 
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
