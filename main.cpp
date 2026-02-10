@@ -229,7 +229,7 @@ private:
 
         if (grabedBall.type != Ball::Type::None) {
             lastMousePosition = sf::Mouse::getPosition(window);
-            ball.setPosition({(float)lastMousePosition.x, (float)lastMousePosition.y});
+            ball.setPosition({(float)lastMousePosition.x - ballCenterPosition, (float)lastMousePosition.y - ballCenterPosition});
             ball.setFillColor(grabedBall.getColor());
             window.draw(ball);
             window.draw(grabedRing);
