@@ -1,4 +1,7 @@
 // SFML
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -41,13 +44,17 @@ public:
         window(sf::VideoMode({808, 900}), "HappyBalls", sf::Style::Close | sf::Style::Titlebar), 
         gameOverText(font),
         scoreText(font),
-        comboText(font)
+        comboText(font),
+        fieldRenderTexture(window.getSize()),
+        fieldSprite(fieldRenderTexture.getTexture())
     {
         window.setFramerateLimit(60);
         sf::Vector2u resolution = window.getSize();
         window.setPosition({(int)resolution.x, (int)resolution.y / 2});        
         
         srand(time(NULL));
+
+        fieldSprite.setPosition({0, 0});
 
         font.setSmooth(true);
         if (!font.openFromFile("fonts/Hack-Regular.ttf")) {
@@ -88,6 +95,7 @@ public:
     void run() {
         generateBalls();
         bool checked = false;
+        redrawField();
         while (window.isOpen()) {
             handleEvents();
             render();
@@ -104,12 +112,18 @@ public:
                     generateBalls();
                     combo = 1;
                 }
+                redrawField();
+                redrawCombo();
+                redrawScoreText();
             }
         }        
     }
 
 private:
     sf::RenderWindow window;
+    sf::RenderTexture fieldRenderTexture;
+
+    sf::Sprite fieldSprite;
 
     static const int cols = 14;
     static const int rows = 14;
@@ -122,6 +136,7 @@ private:
     sf::RectangleShape tile;
     sf::CircleShape ball;
     sf::CircleShape grabedRing;
+    sf::CircleShape grabedBallShape;
     const int outlineSize = 2.f;
     const int spaceOutlineSize = outlineSize * 2;
 
@@ -176,13 +191,17 @@ private:
     void resizeWindow() {
         // puts("Resized!");
         sf::Vector2u resolution = window.getSize();
-        int rs = (resolution.x - spaceOutlineSize * 2) / rows;
-        int cs = (resolution.y - spaceOutlineSize * 2) / cols;
+        int rs = (resolution.x + spaceOutlineSize) / rows;
+        int cs = (resolution.y + spaceOutlineSize) / cols;
+
+        bool err = fieldRenderTexture.resize(resolution);
+
         tileSize = (rs > cs ? cs : rs);
         ballSize = tileSize * 0.33f;
         ballCenterPosition = ballSize / 2.f;
 
         ball.setRadius(ballSize);
+        grabedBallShape.setRadius(ballSize);
         grabedRing.setRadius(ballSize);
         tile.setSize({tileSize, tileSize});
 
@@ -204,22 +223,35 @@ private:
         });
     }
 
-    void render() {
-        window.clear(backgroundColor);
-
+    void redrawField() {
+        fieldRenderTexture.clear(backgroundColor);
         for (int c = 0; c < cols; c++) {
             for (int r = 0; r < rows; r++) {
                 tile.setPosition({(c * tileSize) + spaceOutlineSize, (r * tileSize) + spaceOutlineSize});
-                window.draw(tile);
+                fieldRenderTexture.draw(tile);
 
                 ball.setPosition({tile.getPosition().x + ballCenterPosition, tile.getPosition().y + ballCenterPosition});
                 ball.setFillColor(field[c][r].getColor());
-                window.draw(ball);
+                fieldRenderTexture.draw(ball);
             }
         }
+        fieldRenderTexture.display();
+        fieldSprite.setTexture(fieldRenderTexture.getTexture());
+    }
 
+    void redrawScoreText() {
         scoreText.setString(std::to_string(score));
+    }
+
+    void redrawCombo() {
         comboText.setString('x' + std::to_string(combo));
+    }
+
+    void render() {
+        window.clear(backgroundColor);
+
+        window.draw(fieldSprite);
+
         window.draw(scoreText);
         window.draw(comboText);
 
@@ -229,9 +261,8 @@ private:
 
         if (grabedBall.type != Ball::Type::None) {
             lastMousePosition = sf::Mouse::getPosition(window);
-            ball.setPosition({(float)lastMousePosition.x - ballCenterPosition, (float)lastMousePosition.y - ballCenterPosition});
-            ball.setFillColor(grabedBall.getColor());
-            window.draw(ball);
+            grabedBallShape.setPosition({(float)lastMousePosition.x - ballCenterPosition, (float)lastMousePosition.y - ballCenterPosition});
+            window.draw(grabedBallShape);
             window.draw(grabedRing);
         }
 
@@ -261,6 +292,8 @@ private:
                 (targetPosition.y * tileSize) + ballCenterPosition + spaceOutlineSize,
             });
             grabedRing.setOutlineColor(grabedBall.getColor());
+            grabedBallShape.setFillColor(grabedBall.getColor());
+            redrawField();
             lastGrabedMousePosition = targetPosition;
         } else if (
             ((targetPosition.x >= 0) && (targetPosition.y >= 0)) &&
@@ -277,6 +310,7 @@ private:
             if (lastGrabedMousePosition != targetPosition) {
                 ballIsTransfer = true;
             }
+            redrawField();
         }
         lastTargetPosition = targetPosition;
     }
@@ -330,6 +364,7 @@ private:
 
             field[pos.x][pos.y].type = Ball::Type((rand() % (Ball::Type::TypeCount - 1)) + 1);
         }
+        redrawField();
     }
 
     void resetGame() {
@@ -343,6 +378,8 @@ private:
         }
         grabedBall.type = Ball::Type::None;
         generateBalls();
+        redrawCombo();
+        redrawScoreText();
     }
 
     bool checkVertical() {
@@ -369,6 +406,9 @@ private:
                         score += len * combo;
                         combo++;
                         return true;
+                        redrawCombo();
+                        redrawScoreText();
+                        redrawField();
                     }
                 }
             }
@@ -400,6 +440,9 @@ private:
                         score += len * combo;
                         combo++;
                         return true;
+                        redrawCombo();
+                        redrawScoreText();
+                        redrawField();
                     }
                 }
             }
@@ -433,6 +476,9 @@ private:
                         score += len * combo;
                         combo++;
                         return true;
+                        redrawCombo();
+                        redrawScoreText();
+                        redrawField();
                     }
                 }
             }
@@ -465,6 +511,9 @@ private:
                         r += len;
                         score += len * combo;
                         combo++;
+                        redrawCombo();
+                        redrawScoreText();
+                        redrawField();
                         return true;
                     }
                 }
