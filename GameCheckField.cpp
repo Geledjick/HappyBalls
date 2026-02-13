@@ -20,7 +20,6 @@ bool Game::checkVertical() {
                         field[c][r + len].type = Ball::Type::None;
                         len++;
                     }
-                    r += len;
                     score += len * combo;
                     combo++;
                     return true;
@@ -51,7 +50,6 @@ bool Game::checkHorizont() {
                         field[c + len][r].type = Ball::Type::None;
                         len++;
                     }
-                    r += len;
                     score += len * combo;
                     combo++;
                     return true;
@@ -84,7 +82,6 @@ bool Game::checkDiagonalDownRight() {
                         field[c + len][r + len].type = Ball::Type::None;
                         len++;
                     }
-                    r += len;
                     score += len * combo;
                     combo++;
                     return true;
@@ -117,7 +114,6 @@ bool Game::checkDiagonalUpRight() {
                         field[c + len][r - len].type = Ball::Type::None;
                         len++;
                     }
-                    r += len;
                     score += len * combo;
                     combo++;
                     return true;
