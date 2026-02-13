@@ -88,6 +88,7 @@ private:
     bool findPath(sf::Vector2i targetPosition);
     void generateBalls();
     void resetGame();
+    bool checkField();
     bool checkVertical();
     bool checkHorizont();
     bool checkDiagonalDownRight();

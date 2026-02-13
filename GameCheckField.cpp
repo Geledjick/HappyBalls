@@ -24,9 +24,6 @@ bool Game::checkVertical() {
                     score += len * combo;
                     combo++;
                     return true;
-                    redrawCombo();
-                    redrawScoreText();
-                    redrawField();
                 }
             }
         }
@@ -58,9 +55,6 @@ bool Game::checkHorizont() {
                     score += len * combo;
                     combo++;
                     return true;
-                    redrawCombo();
-                    redrawScoreText();
-                    redrawField();
                 }
             }
         }
@@ -94,9 +88,6 @@ bool Game::checkDiagonalDownRight() {
                     score += len * combo;
                     combo++;
                     return true;
-                    redrawCombo();
-                    redrawScoreText();
-                    redrawField();
                 }
             }
         }
@@ -129,9 +120,6 @@ bool Game::checkDiagonalUpRight() {
                     r += len;
                     score += len * combo;
                     combo++;
-                    redrawCombo();
-                    redrawScoreText();
-                    redrawField();
                     return true;
                 }
             }

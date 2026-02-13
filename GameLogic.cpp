@@ -8,23 +8,31 @@ void Game::run() {
         handleEvents();
         render();
 
-        checked = (
-            checkVertical() ||
-            checkHorizont() ||
-            checkDiagonalDownRight() ||
-            checkDiagonalUpRight()
-        );
+        checked = checkField();
         if (!gameOver && ballIsTransfer) {
             ballIsTransfer = false;
             if(!checked) {
                 generateBalls();
                 combo = 1;
             }
-            redrawField();
-            redrawCombo();
-            redrawScoreText();
         }
-    }        
+    }
+}
+
+bool Game::checkField() {
+    if (
+        checkVertical() ||
+        checkHorizont() ||
+        checkDiagonalDownRight() ||
+        checkDiagonalUpRight()
+    ) {
+        redrawField();
+        redrawCombo();
+        redrawScoreText();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Game::handleEvents() {
@@ -100,7 +108,6 @@ void Game::generateBalls() {
 
         field[pos.x][pos.y].type = Ball::Type((rand() % (Ball::Type::TypeCount - 1)) + 1);
     }
-    redrawField();
 }
 
 void Game::resetGame() {
@@ -114,6 +121,7 @@ void Game::resetGame() {
     }
     grabedBall.type = Ball::Type::None;
     generateBalls();
+    redrawField();
     redrawCombo();
     redrawScoreText();
 }
