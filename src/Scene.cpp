@@ -1,0 +1,32 @@
+#pragma once
+
+#include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
+#include <SFML/System/Vector2.hpp>
+
+class Scene : public sf::Drawable, public sf::Transformable {
+public:
+    Scene(sf::Vector2u size, sf::Color backColor = sf::Color::Transparent) : renderTexture(size), backgroundColor(backColor) {
+        renderTexture.setSmooth(true);
+    }
+
+    void virtual run() = 0;
+    
+    void virtual render() = 0;
+
+    void reRender() {
+        neededRender = true;
+    }
+
+protected:
+    sf::RenderTexture renderTexture;
+    bool neededRender = true;
+    const sf::Color backgroundColor;
+
+    void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
+        states.transform *= getTransform();
+        states.texture = &renderTexture.getTexture();
+        const sf::Sprite sprite(renderTexture.getTexture());
+        target.draw(sprite, states);
+    };
+};
