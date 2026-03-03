@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.cpp"
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
 class Menu : public Scene {
@@ -11,7 +12,7 @@ public:
 
     }
 
-    void render() override {
+    void render(sf::RenderWindow *window) override {
         if (neededRender) {
             neededRender = false;
             renderTexture.clear(backgroundColor);

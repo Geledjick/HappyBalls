@@ -1,8 +1,10 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 
 class Scene : public sf::Drawable, public sf::Transformable {
 public:
@@ -10,9 +12,13 @@ public:
         renderTexture.setSmooth(true);
     }
 
-    void virtual run() = 0;
-    
-    void virtual render() = 0;
+    void virtual run() {}
+
+    void virtual render(sf::RenderWindow *window) = 0;
+
+    void virtual mouseClick(sf::RenderWindow *window) {};
+
+    void virtual resize(sf::Vector2u lastResolution, sf::Vector2u newResolution) {}
 
     void reRender() {
         neededRender = true;

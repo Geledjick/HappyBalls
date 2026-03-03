@@ -5,23 +5,26 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <vector>
 
-#include "Ball.hpp"
 #include "Scene.cpp"
+#include "Ball.cpp"
 
 class Field : public Scene {
 public:
     Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Vector2f fieldPos) : Scene(size, sf::Color(50, 52, 70)), rows(fieldSize.x), cols(fieldSize.y), maxGenerateIterations((cols + rows) / 2), countGenerateInIteration((cols + rows) / 3) {
         data.resize(rows);
         data.shrink_to_fit();
-        for (std::vector<BALL> &row : data) {
+        for (std::vector<Ball> &row : data) {
             row.resize(cols);
             row.shrink_to_fit();
 
-            for(BALL ball : row) {
+            for(Ball ball : row) {
                 ball = BALL_NONE;
             }
         }
@@ -29,62 +32,60 @@ public:
         tileWidth = (float)size.x / rows;
         tileHeight = (float)size.y / cols;
 
+        tileLogicWidth = tileWidth;
+        tileLogicHeight = tileHeight;
+
         ballSize = (tileHeight > tileWidth ? tileWidth : tileHeight) * 0.33f;
         ball.setRadius(ballSize);
-
         ballOffset = {(tileWidth / 2) - ballSize, (tileHeight / 2) - ballSize};
+        ball.setOutlineThickness(2);
 
         tile.setSize({tileWidth, tileHeight});
         tile.setFillColor(backgroundColor);
         tile.setOutlineColor(sf::Color(68, 71, 90));
-        tile.setOutlineThickness(3);
+        tile.setOutlineThickness(4);
+
+        data[0][0].type = Ball::Type::Blue;
 
         generate();
-        reRender();
     }
 
-    const BALL *get(const sf::Vector2u index) {
+    const Ball *get(const sf::Vector2i index) {
         if (index.x >= rows || index.y >= cols) {
             return nullptr;
         }
         return &data[index.x][index.y];
     }
 
-    void set(const sf::Vector2u index, const BALL ball = BALL_NONE) {
+    void set(const sf::Vector2i index, const Ball ball = BALL_NONE) {
         if (index.x >= rows || index.y >= cols) {
             return;
         }
         data[index.x][index.y] = ball;
     }
 
-    const BALL *getusf(const sf::Vector2u index) {
+    const Ball *getusf(const sf::Vector2i index) {
         return &data[index.x][index.y];
     }
 
-    void setusf(const sf::Vector2u index, const BALL ball = BALL_NONE) {
+    void setusf(const sf::Vector2i index, const Ball ball = BALL_NONE) {
         data[index.x][index.y] = ball;
     }
 
-    void run() override {
-        reRender();
-    }
-
-    void render() override {
+    void render(sf::RenderWindow *window) override {
         if (neededRender) {
             neededRender = false;
             renderTexture.clear(backgroundColor);
 
-            for (unsigned int r = 0; r < rows; r++) {
-                for (unsigned int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
                     tile.setPosition({r * tileWidth, c * tileHeight});
                     renderTexture.draw(tile);
 
                     ball.setPosition(tile.getPosition() + ballOffset);
-                    ball.setFillColor(*getusf({r, c}));
-                    if (ball.getFillColor() == BALL_NONE) {
-                        ball.setFillColor(backgroundColor);
-                    }
-
+                    const sf::Color ballColor = getusf({r, c})->getColor();
+                    ball.setFillColor(ballColor);
+                    ball.setOutlineColor(ballColor != sf::Color::Transparent ? sf::Color::Black : sf::Color::Transparent);
                     renderTexture.draw(ball);
                 }
             }
@@ -93,8 +94,12 @@ public:
         }
     }
 
+    void run() override {
+
+    }
+
     bool generate() {
-        sf::Vector2u pos;
+        sf::Vector2i pos;
         for (int i = 0; i < countGenerateInIteration; i++) {
             int j = 0;
             do {
@@ -105,24 +110,38 @@ public:
                     return true;
                 }
 
-            } while (*getusf(pos) != BALL_NONE);
+            } while (getusf(pos)->type != BALL_NONE_TYPE);
 
-            BALL generated;
-            switch (rand() % 4) {
-                case 0: generated = BALL_RED; break;
-                case 1: generated = BALL_GREEN; break;
-                case 2: generated = BALL_BLUE; break;
-                case 3: generated = BALL_YELLOW; break;
-            }
-
-            setusf(pos, generated);
+            setusf(pos, {Ball::Type((rand() % (BALL_TYPES_COUNT - 1)) + 1)});
         }
 
+        reRender();
         return false;
+    }
+
+    void resize(sf::Vector2u lastResolution, sf::Vector2u newResolution) override {
+        tileLogicWidth *= (float)newResolution.x / lastResolution.x;
+        tileLogicHeight *= (float)newResolution.y / lastResolution.y;
+    }
+
+    // Getters
+    const float getBallSize() const {
+        return ballSize;
+    }
+
+    const sf::Vector2f getTileLogicSize() const {
+        return sf::Vector2f(tileLogicWidth, tileLogicHeight);
+    }
+    const float getTileLogicWidth() const {
+        return tileLogicWidth;
+    }
+    const float getTileLogicHeight() const {
+        return tileLogicHeight;
     }
 
 private:
     float tileWidth, tileHeight;
+    float tileLogicWidth, tileLogicHeight;
     float ballSize;
     sf::Vector2f ballOffset;
     const unsigned int rows, cols;
@@ -130,7 +149,7 @@ private:
     const unsigned int countGenerateInIteration;
     const unsigned int maxGenerateIterations;
 
-    std::vector<std::vector<BALL>> data;
+    std::vector<std::vector<Ball>> data;
     sf::RectangleShape tile;
     sf::CircleShape ball;
 };
