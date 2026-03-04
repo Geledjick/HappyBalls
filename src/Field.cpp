@@ -14,10 +14,16 @@
 
 #include "Scene.cpp"
 #include "Ball.cpp"
+#include "Scaler.cpp"
 
 class Field : public Scene {
 public:
-    Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Vector2f fieldPos) : Scene(size, sf::Color(50, 52, 70)), rows(fieldSize.x), cols(fieldSize.y), maxGenerateIterations((cols + rows) / 2), countGenerateInIteration((cols + rows) / 3) {
+    Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Vector2f fieldPos) : 
+        Scene(size, sf::Color(50, 52, 70)), 
+        rows(fieldSize.x), cols(fieldSize.y), 
+        maxGenerateIterations((cols + rows) / 2), 
+        countGenerateInIteration((cols + rows) / 3)
+    {
         data.resize(rows);
         data.shrink_to_fit();
         for (std::vector<Ball> &row : data) {
@@ -35,17 +41,19 @@ public:
         tileLogicWidth = tileWidth;
         tileLogicHeight = tileHeight;
 
+        ballLogicOffset = {
+            (tileLogicWidth * 0.33f) / 2,
+            (tileLogicHeight * 0.33f) / 2,
+        };
+
         ballSize = (tileHeight > tileWidth ? tileWidth : tileHeight) * 0.33f;
         ball.setRadius(ballSize);
-        ballOffset = {(tileWidth / 2) - ballSize, (tileHeight / 2) - ballSize};
-        ball.setOutlineThickness(2);
+        ballOffset = ballSize / 2;
 
         tile.setSize({tileWidth, tileHeight});
         tile.setFillColor(backgroundColor);
         tile.setOutlineColor(sf::Color(68, 71, 90));
         tile.setOutlineThickness(4);
-
-        data[0][0].type = Ball::Type::Blue;
 
         generate();
     }
@@ -79,10 +87,16 @@ public:
 
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < cols; c++) {
-                    tile.setPosition({r * tileWidth, c * tileHeight});
+                    tile.setPosition(
+                        {r * tileWidth, c * tileHeight}
+                    );
+
                     renderTexture.draw(tile);
 
-                    ball.setPosition(tile.getPosition() + ballOffset);
+                    ball.setPosition(
+                        tile.getPosition() + sf::Vector2f{ballOffset, ballOffset}
+                    );
+
                     const sf::Color ballColor = getusf({r, c})->getColor();
                     ball.setFillColor(ballColor);
                     ball.setOutlineColor(ballColor != sf::Color::Transparent ? sf::Color::Black : sf::Color::Transparent);
@@ -119,9 +133,14 @@ public:
         return false;
     }
 
-    void resize(sf::Vector2u lastResolution, sf::Vector2u newResolution) override {
-        tileLogicWidth *= (float)newResolution.x / lastResolution.x;
-        tileLogicHeight *= (float)newResolution.y / lastResolution.y;
+    void resize() override {
+        tileLogicWidth = Scaler::scaleX(tileWidth);
+        tileLogicHeight = Scaler::scaleY(tileHeight);
+
+        ballLogicOffset = {
+            (tileLogicWidth * 0.33f) / 2,
+            (tileLogicHeight * 0.33f) / 2,
+        };
     }
 
     // Getters
@@ -129,6 +148,7 @@ public:
         return ballSize;
     }
 
+    // Tile logic size
     const sf::Vector2f getTileLogicSize() const {
         return sf::Vector2f(tileLogicWidth, tileLogicHeight);
     }
@@ -139,11 +159,23 @@ public:
         return tileLogicHeight;
     }
 
+    // Ball logic size
+    const sf::Vector2f getBallLogicOffset() const {
+        return ballLogicOffset;
+    }
+    const float getBallLogicOffsetWidth() const {
+        return ballLogicOffset.x;
+    }
+    const float getBallLogicOffsetHeight() const {
+        return ballLogicOffset.y;
+    }
+
 private:
     float tileWidth, tileHeight;
     float tileLogicWidth, tileLogicHeight;
     float ballSize;
-    sf::Vector2f ballOffset;
+    float ballOffset;
+    sf::Vector2f ballLogicOffset;
     const unsigned int rows, cols;
 
     const unsigned int countGenerateInIteration;

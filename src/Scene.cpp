@@ -18,7 +18,7 @@ public:
 
     void virtual mouseClick(sf::RenderWindow *window) {};
 
-    void virtual resize(sf::Vector2u lastResolution, sf::Vector2u newResolution) {}
+    void virtual resize() {}
 
     void reRender() {
         neededRender = true;

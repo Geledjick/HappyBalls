@@ -1,19 +1,17 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Window/ContextSettings.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/WindowEnums.hpp>
 #include <optional>
 #include <ctime>
 
 #include "Scene.cpp"
 #include "Game.cpp"
 #include "debug.cpp"
+#include "Scaler.cpp"
 
-sf::Vector2f scale;
+sf::Vector2u Scaler::startResolution = {};
+sf::Vector2f Scaler::scaleMul = {};
 
 int main() {
     sf::ContextSettings settings;
@@ -21,9 +19,11 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode({900, 1000}), "HappyBalls", sf::Style::Default, sf::State::Windowed, settings);
     window.setFramerateLimit(60);
-    sf::Vector2u resolution = window.getSize();
 
-    Game game(resolution, {14, 14});
+    sf::Vector2u startResolution = window.getSize();
+    Scaler(window.getSize());
+
+    Game game(startResolution, {20, 20});
     Scene *currentScene = &game;
 
     srand(time(NULL));
@@ -34,9 +34,11 @@ int main() {
         std::optional<sf::Event> event;
         while ((event = window.pollEvent())) { 
             if (event->is<sf::Event::Resized>()) {
-                currentScene->resize(resolution, window.getSize());
-                resolution = window.getSize();
-                DEBUG_PRINTF("Resized | New resolution: W - %d, H - %d\n", resolution.x, resolution.y);
+                currentScene->resize();
+
+                Scaler::rescale(window.getSize());
+
+                DEBUG_PRINTF("Resized | New resolution: W - %d, H - %d\n", window.getSize().x, window.getSize().y);
 
             } else if (event->is<sf::Event::Closed>()) {
                 window.close();
