@@ -1,28 +1,24 @@
 #pragma once
 
 #include "Scene.cpp"
-#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 
-class Menu : public Scene {
+class ScoreBar : public Scene {
 public:
-    Menu(sf::Vector2u size, sf::Color backgroundColor) : Scene(size, backgroundColor) {}
-
-    void run() override {
-
+    ScoreBar(sf::Vector2u size, sf::Color backgroundColor = sf::Color::Black) : Scene(size, backgroundColor) {
+    
     }
 
     void render(sf::RenderWindow *window) override {
         if (neededRender) {
             neededRender = false;
             renderTexture.clear(backgroundColor);
-            
-
 
             renderTexture.display();
         }
     }
 
 private:
-    
 };

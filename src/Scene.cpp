@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -8,7 +9,7 @@
 
 class Scene : public sf::Drawable, public sf::Transformable {
 public:
-    Scene(sf::Vector2u size, sf::Color backColor = sf::Color::Transparent) : renderTexture(size), backgroundColor(backColor) {
+    Scene(sf::Vector2u size, sf::Color backColor = sf::Color::Black) : renderTexture(size), backgroundColor(backColor) {
         renderTexture.setSmooth(true);
     }
 
@@ -22,6 +23,10 @@ public:
 
     void reRender() {
         neededRender = true;
+    }
+
+    const sf::Vector2u getSize() const {
+        return renderTexture.getSize();
     }
 
 protected:

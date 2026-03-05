@@ -10,16 +10,20 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Mouse.hpp>
+#include <cstdlib>
+#include <ctime>
 #include <vector>
 
 #include "Scene.cpp"
 #include "Ball.cpp"
 #include "Scaler.cpp"
 
+#include "ColorSceme.hpp"
+
 class Field : public Scene {
 public:
-    Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Vector2f fieldPos) : 
-        Scene(size, sf::Color(50, 52, 70)), 
+    Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Color backgroundColor = sf::Color::Black) : 
+        Scene(size, backgroundColor), 
         rows(fieldSize.x), cols(fieldSize.y), 
         maxGenerateIterations((cols + rows) / 2), 
         countGenerateInIteration((cols + rows) / 3)
@@ -51,9 +55,11 @@ public:
         ballOffset = ballSize / 2;
 
         tile.setSize({tileWidth, tileHeight});
-        tile.setFillColor(backgroundColor);
-        tile.setOutlineColor(sf::Color(68, 71, 90));
-        tile.setOutlineThickness(4);
+        tile.setFillColor(CELL_COLOR);
+        tile.setOutlineColor(FIELD_COLOR);
+        tile.setOutlineThickness(2);
+
+        srand(time(NULL));
 
         generate();
     }

@@ -2,13 +2,15 @@
 #include <SFML/System.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <optional>
-#include <ctime>
 
 #include "Scene.cpp"
 #include "Game.cpp"
 #include "debug.cpp"
 #include "Scaler.cpp"
+#include "ColorSceme.hpp"
 
 sf::Vector2u Scaler::startResolution = {};
 sf::Vector2f Scaler::scaleMul = {};
@@ -23,10 +25,8 @@ int main() {
     sf::Vector2u startResolution = window.getSize();
     Scaler(window.getSize());
 
-    Game game(startResolution, {20, 20});
+    Game game(startResolution, {16, 16}, FIELD_COLOR);
     Scene *currentScene = &game;
-
-    srand(time(NULL));
 
     bool lastMouseLeftClickState = false;
 
