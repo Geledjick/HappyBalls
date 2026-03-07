@@ -18,7 +18,6 @@
 #include "Ball.cpp"
 #include "Scaler.cpp"
 #include "ColorSceme.hpp"
-
 #include "../lib/Matrix2.cpp"
 
 class Field : public Scene {
@@ -74,16 +73,13 @@ public:
                     const sf::Color ballColor = data.at(r, c).getColor();
                     ball.setFillColor(ballColor);
                     ball.setOutlineColor(ballColor != sf::Color::Transparent ? sf::Color::Black : sf::Color::Transparent);
+
                     renderTexture.draw(ball);
                 }
             }
 
             renderTexture.display();
         }
-    }
-
-    void run() override {
-        //FiedlChecker::check(data);
     }
 
     bool generate() {

@@ -33,9 +33,126 @@ public:
         grabedBallShapeRing.setOutlineThickness(4);
     }
 
+    const bool checkField() {
+        Matrix2<Ball> &data = field.getData();
+
+        bool checked = false;
+        for (unsigned int r = 0; r < data.getRows(); r++) {
+            for (unsigned int c = 0; c < data.getCols(); c++) {
+                Ball &targetBall = data.at(r, c);
+                if (targetBall.type == BALL_NONE_TYPE) {
+                    continue;
+                }
+                
+                if (
+                    data.check(r + 1, c) &&
+                    data.check(r + 2, c) &&
+                    targetBall.type == data.at(r + 1, c).type &&
+                    targetBall.type == data.at(r + 2, c).type
+                ) {
+                    checked = true;
+                    data.at(r + 1, c).type = BALL_NONE_TYPE;
+                    data.at(r + 2, c).type = BALL_NONE_TYPE;
+
+                    int len = 3;
+                    while (
+                        data.check(r + len, c) &&
+                        targetBall.type == data.at(r + len, c).type
+                    ) {
+                        data.at(r + len, c).type = BALL_NONE_TYPE;
+                        len++;
+                    }
+
+                    targetBall.type = BALL_NONE_TYPE;
+                    scoreBar.addScore(len);
+                    scoreBar.incCombo();
+
+                } else if (
+                    data.check(r, c + 1) &&
+                    data.check(r, c + 2) &&
+                    targetBall.type == data.at(r, c + 1).type &&
+                    targetBall.type == data.at(r, c + 2).type
+                ) {
+                    checked = true;
+                    data.at(r, c + 1).type = BALL_NONE_TYPE;
+                    data.at(r, c + 2).type = BALL_NONE_TYPE;
+
+                    int len = 3;
+                    while (
+                        data.check(r, c + len) &&
+                        targetBall.type == data.at(r, c + len).type
+                    ) {
+                        data.at(r, c + len).type = BALL_NONE_TYPE;
+                        len++;
+                    }
+
+                    targetBall.type = BALL_NONE_TYPE;
+                    scoreBar.addScore(len);
+                    scoreBar.incCombo();
+
+                } else if (
+                    data.check(r + 1, c + 1) &&
+                    data.check(r + 2, c + 2) &&
+                    targetBall.type == data.at(r + 1, c + 1).type &&
+                    targetBall.type == data.at(r + 2, c + 2).type
+                ) {
+                    checked = true;
+                    data.at(r + 1, c + 1).type = BALL_NONE_TYPE;
+                    data.at(r + 2, c + 2).type = BALL_NONE_TYPE;
+
+                    int len = 3;
+                    while (
+                        data.check(r + len, c + len) &&
+                        targetBall.type == data.at(r + len, c + len).type
+                    ) {
+                        data.at(r + len, c + len).type = BALL_NONE_TYPE;
+                        len++;
+                    }
+
+                    targetBall.type = BALL_NONE_TYPE;
+                    scoreBar.addScore(len);
+                    scoreBar.incCombo();
+
+                } else if (
+                    data.check(r - 1, c + 1) &&
+                    data.check(r - 2, c + 2) &&
+                    targetBall.type == data.at(r - 1, c + 1).type &&
+                    targetBall.type == data.at(r - 2, c + 2).type
+                ) {
+                    checked = true;
+                    data.at(r - 1, c + 1).type = BALL_NONE_TYPE;
+                    data.at(r - 2, c + 2).type = BALL_NONE_TYPE;
+
+                    int len = 3;
+                    while (
+                        data.check(r - len, c + len) &&
+                        targetBall.type == data.at(r - len, c + len).type
+                    ) {
+                        data.at(r - len, c + len).type = BALL_NONE_TYPE;
+                        len++;
+                    }
+
+                    targetBall.type = BALL_NONE_TYPE;
+                    scoreBar.addScore(len);
+                    scoreBar.incCombo();
+                }
+            }
+        }
+
+        lastChecked = checked;
+        return checked;
+    }
+
     void run() override {
         field.run();
         scoreBar.run();
+
+        if (!lastChecked && ballPlaced) {
+            gameOver = field.generate();
+            checkField();
+
+            ballPlaced = false;
+        }
     }
 
     void mouseClick(sf::RenderWindow *window) override {
@@ -79,8 +196,16 @@ public:
             field.getData().at(targetPosition) = grabedBall;
             grabedBall = BALL_NONE;
 
+            if (lastGrabedBallPostition != targetPosition) {
+                ballPlaced = true;
+            }
+
+            checkField();
+
             DEBUG_PUTS("PUT!");
         }
+
+        lastGrabedBallPostition = targetPosition;
 
         field.reRender();
         reRender();
@@ -120,10 +245,30 @@ public:
         }
     }
 
+    const Field &getField() const {
+        return field;
+    }
+    Field &getField() {
+        return field;
+    }
+
+    const ScoreBar &getScoreBar() const {
+        return scoreBar;
+    }
+    ScoreBar &getScoreBar() {
+        return scoreBar;
+    }
+
 private:
     Field field;
     ScoreBar scoreBar;
 
+    bool gameOver = false;
+
+    bool lastChecked = true;
+    bool ballPlaced = false;
+
+    sf::Vector2i lastGrabedBallPostition;
     Ball grabedBall;
     
     sf::CircleShape grabedBallShape;

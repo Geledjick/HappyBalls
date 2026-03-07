@@ -24,10 +24,12 @@ struct Ball {
         Blue,
         Yellow,
         Count
-    } type;
+    };
 
     Ball() : type(BALL_NONE_TYPE) {}
     Ball(Ball::Type newType) : type(newType) {}
+
+    Ball::Type type;
 
     const sf::Color getColor() const {
         switch (type) {

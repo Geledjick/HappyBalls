@@ -15,10 +15,20 @@ public:
     }
 
     const bool check(const int r, const int c) const {
-        return r <= rows && c <= cols;
+        return (
+            r < rows &&
+            c < cols &&
+            r >= 0 &&
+            c >= 0
+        );
     }
     const bool check(const sf::Vector2i index) const {
-        return index.x <= rows && index.y <= cols;
+        return (
+            index.x < rows &&
+            index.y < cols &&
+            index.x >= 0 &&
+            index.y >= 0
+        );
     }
 
     const T &at(const int r, const int c) const {
