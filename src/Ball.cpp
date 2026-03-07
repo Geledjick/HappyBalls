@@ -26,6 +26,9 @@ struct Ball {
         Count
     } type;
 
+    Ball() : type(BALL_NONE_TYPE) {}
+    Ball(Ball::Type newType) : type(newType) {}
+
     const sf::Color getColor() const {
         switch (type) {
             case BALL_RED_TYPE: return sf::Color::Red;

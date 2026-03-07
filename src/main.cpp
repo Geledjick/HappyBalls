@@ -11,11 +11,20 @@
 #include "debug.cpp"
 #include "Scaler.cpp"
 #include "ColorSceme.hpp"
+#include "AssetsManager.cpp"
 
+// Scaler
 sf::Vector2u Scaler::startResolution = {};
 sf::Vector2f Scaler::scaleMul = {};
 
+// AssetsManager
+sf::Font AssetsManager::font;
+const std::string AssetsManager::assetsDirectory = "./assets/";
+
 int main() {
+    // AssetsManager
+    AssetsManager::openFontFrom("fonts/Hack-Regular.ttf");
+
     sf::ContextSettings settings;
     settings.antiAliasingLevel = 8;
 

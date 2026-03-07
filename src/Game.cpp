@@ -48,34 +48,35 @@ public:
 
         DEBUG_PRINTF("Click on: X - %d, Y - %d\n", targetPosition.x, targetPosition.y);
 
-        const Ball *targetBall = field.get(targetPosition);
-        if (targetBall == nullptr) {
+        if (!field.getData().check(targetPosition)) {
             return;
         }
 
-        if (grabedBall.type == BALL_NONE_TYPE && targetBall->type != BALL_NONE_TYPE) {
+        const Ball &targetBall = field.getData().at(targetPosition);
+
+        if (grabedBall.type == BALL_NONE_TYPE && targetBall.type != BALL_NONE_TYPE) {
             window->setMouseCursorVisible(false);
 
-            grabedBall = *targetBall; // set garbed ball
+            grabedBall = targetBall; // set garbed ball
             
             grabedBallShapeRing.setPosition({
                 targetPosition.x * Scaler::restoreX(field.getTileLogicWidth()) + Scaler::restoreX(field.getBallLogicOffsetWidth()),
                 targetPosition.y * Scaler::restoreY(field.getTileLogicHeight()) + Scaler::restoreY(field.getBallLogicOffsetHeight())
             });
 
-            const sf::Color targetColor = targetBall->getColor();
+            const sf::Color targetColor = targetBall.getColor();
 
             grabedBallShapeRing.setOutlineColor(targetColor);
             grabedBallShape.setFillColor(targetColor);
 
-            field.setusf(targetPosition, BALL_NONE); // clear target ball
+            field.getData().at(targetPosition) = BALL_NONE; // clear target ball
 
             DEBUG_PUTS("GRAB!");
 
-        } else if (grabedBall.type != BALL_NONE_TYPE && targetBall->type == BALL_NONE_TYPE) {
+        } else if (grabedBall.type != BALL_NONE_TYPE && targetBall.type == BALL_NONE_TYPE) {
             window->setMouseCursorVisible(true);
 
-            field.setusf(targetPosition, grabedBall);
+            field.getData().at(targetPosition) = grabedBall;
             grabedBall = BALL_NONE;
 
             DEBUG_PUTS("PUT!");

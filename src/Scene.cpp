@@ -9,7 +9,7 @@
 
 class Scene : public sf::Drawable, public sf::Transformable {
 public:
-    Scene(sf::Vector2u size, sf::Color backColor = sf::Color::Black) : renderTexture(size), backgroundColor(backColor) {
+    Scene(sf::Vector2u size, sf::Color backgroundColor = sf::Color::Black) : renderTexture(size), backgroundColor(backgroundColor) {
         renderTexture.setSmooth(true);
     }
 
