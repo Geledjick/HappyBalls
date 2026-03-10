@@ -14,9 +14,9 @@
 #include <ctime>
 #include <vector>
 
-#include "Scene.cpp"
+#include "../lib/Scene.cpp"
 #include "Ball.cpp"
-#include "Scaler.cpp"
+#include "../lib/Scaler.cpp"
 #include "ColorSceme.hpp"
 #include "../lib/Matrix2.cpp"
 
@@ -25,8 +25,8 @@ public:
     Field(sf::Vector2u size, const sf::Vector2u fieldSize, const sf::Color backgroundColor = sf::Color::Black) : 
         Scene(size, backgroundColor), 
         data(fieldSize.x, fieldSize.y), 
-        maxGenerateIterations((fieldSize.x + fieldSize.y) / 2), 
-        countGenerateInIteration((fieldSize.x + fieldSize.y) / 3)
+        maxGenerateIterations((fieldSize.x + fieldSize.y) / 4), 
+        countGenerateInIteration((fieldSize.x + fieldSize.y))
     {
         tileWidth = (float)size.x / fieldSize.x;
         tileHeight = (float)size.y / fieldSize.y;

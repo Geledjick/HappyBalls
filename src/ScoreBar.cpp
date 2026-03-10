@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene.cpp"
+#include "../lib/Scene.cpp"
 #include "AssetsManager.cpp"
 #include "ColorSceme.hpp"
 
@@ -25,8 +25,8 @@ public:
         scoreText.setFillColor(TEXT_COLOR);
         comboText.setFillColor(TEXT_COLOR);
 
-        scoreText.setPosition({FONT_SIZE, (size.y / 2.f) - (FONT_SIZE / 1.5f)});
-        comboText.setPosition({size.x / 1.25f, scoreText.getPosition().y});
+        scoreText.setPosition({(size.x / FONT_SIZE) * 2, (size.y / 2.f) - (FONT_SIZE / 1.5f)});
+        comboText.setPosition({size.x - (scoreText.getPosition().x * 6), scoreText.getPosition().y});
 
         updateScoreText();
         updateComboText();

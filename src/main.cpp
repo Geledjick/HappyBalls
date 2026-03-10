@@ -6,10 +6,10 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <optional>
 
-#include "Scene.cpp"
+#include "../lib/Scene.cpp"
 #include "Game.cpp"
 #include "debug.cpp"
-#include "Scaler.cpp"
+#include "../lib/Scaler.cpp"
 #include "ColorSceme.hpp"
 #include "AssetsManager.cpp"
 
@@ -63,7 +63,7 @@ int main() {
             }
         }
 
-        currentScene->run();
+        currentScene->run(&window);
         currentScene->render(&window);
 
         window.clear();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene.cpp"
+#include "../lib/Scene.cpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 

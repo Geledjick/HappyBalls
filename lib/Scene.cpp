@@ -9,11 +9,11 @@
 
 class Scene : public sf::Drawable, public sf::Transformable {
 public:
-    Scene(sf::Vector2u size, sf::Color backgroundColor = sf::Color::Black) : renderTexture(size), backgroundColor(backgroundColor) {
+    Scene(const sf::Vector2u size, const sf::Color backgroundColor = sf::Color::Black) : renderTexture(size), backgroundColor(backgroundColor) {
         renderTexture.setSmooth(true);
     }
 
-    void virtual run() {}
+    void virtual run(sf::RenderWindow *window) {}
 
     void virtual render(sf::RenderWindow *window) = 0;
 
@@ -29,10 +29,14 @@ public:
         return renderTexture.getSize();
     }
 
+    const bool getNeededRender() const {
+        return neededRender;
+    }
+
 protected:
     sf::RenderTexture renderTexture;
     bool neededRender = true;
-    const sf::Color backgroundColor;
+    sf::Color backgroundColor;
 
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
         states.transform *= getTransform();
