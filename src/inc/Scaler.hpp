@@ -7,10 +7,7 @@
 
 class Scaler {
 public:
-    Scaler(const sf::Vector2u newStartResolution) {
-        startResolution = newStartResolution;
-        scaleMul = {1.f, 1.f};
-    }
+    Scaler(const sf::Vector2u newStartResolution);
 
     template<typename T>
     static const T scaleX(const T value) {
@@ -38,22 +35,11 @@ public:
         return {vec.x / scaleMul.x, vec.y / scaleMul.y};
     }
 
-    static void rescale(const sf::Vector2u newResolution) {
-        scaleMul = {
-            (float)newResolution.x / startResolution.x,
-            (float)newResolution.y / startResolution.y
-        };
-    }
+    static void rescale(const sf::Vector2u newResolution);
 
-    static const sf::Vector2f getScaleMul() {
-        return scaleMul;
-    }
-    static const float getScaleMulX() {
-        return scaleMul.x;
-    }
-    static const float getScaleMulY() {
-        return scaleMul.y;
-    }
+    static const sf::Vector2f getScaleMul();
+    static const float getScaleMulX();
+    static const float getScaleMulY();
     
 private:
     static sf::Vector2u startResolution;

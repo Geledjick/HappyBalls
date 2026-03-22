@@ -16,7 +16,16 @@ FetchContent_MakeAvailable(SFML)
 
 set(
     SOURCES
+    src/AssetsManager.cpp
+    src/Ball.cpp
+    src/Button.cpp
+    src/Field.cpp
+    src/Game.cpp
+    src/GameOverScene.cpp
     src/main.cpp
+    src/Scaler.cpp
+    src/Scene.cpp
+    src/ScoreBar.cpp
 )
 
 add_executable(happyballs ${SOURCES})

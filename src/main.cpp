@@ -6,20 +6,12 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <optional>
 
-#include "../lib/Scene.cpp"
-#include "Game.cpp"
-#include "debug.cpp"
-#include "../lib/Scaler.cpp"
-#include "ColorSceme.hpp"
-#include "AssetsManager.cpp"
-
-// Scaler
-sf::Vector2u Scaler::startResolution = {};
-sf::Vector2f Scaler::scaleMul = {};
-
-// AssetsManager
-sf::Font AssetsManager::font;
-const std::string AssetsManager::assetsDirectory = "./assets/";
+#include "inc/Scene.hpp"
+#include "inc/Game.hpp"
+#include "inc/debug.hpp"
+#include "inc/Scaler.hpp"
+#include "inc/ColorSceme.hpp"
+#include "inc/AssetsManager.hpp"
 
 int main() {
     // AssetsManager
@@ -34,8 +26,8 @@ int main() {
     sf::Vector2u startResolution = window.getSize();
     Scaler(window.getSize());
 
-    Game game(startResolution, {16, 16}, FIELD_COLOR);
-    Scene *currentScene = &game;
+    Game gameScene = Game(startResolution, {16, 16}, FIELD_COLOR);
+    Scene *currentScene = &gameScene;
 
     bool lastMouseLeftClickState = false;
 
