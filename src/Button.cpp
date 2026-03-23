@@ -1,10 +1,18 @@
 #include "inc/Button.hpp"
+#include "inc/AssetsManager.hpp"
+#include "inc/ColorSceme.hpp"
 
-    Button::Button(const sf::Vector2u size, const sf::Color defaultColor, const sf::Color checkedColor) :
+    Button::Button(const sf::Vector2u size, const sf::Color defaultColor, const sf::Color checkedColor, const std::string newText) :
         defaultColor(defaultColor),
         checkedColor(checkedColor),
+        text(AssetsManager::getFont(), newText, size.y * 0.5f),
         Scene(size)
-    {}
+    {
+        //text.setOrigin(text.getGlobalBounds().size * -0.5f);
+        text.setPosition(getPosition() * 0.5f);
+        text.move({10, text.getCharacterSize() * 0.5f});
+        text.setFillColor(TEXT_COLOR);
+    }
 
     void Button::mouseClick(sf::RenderWindow *window) {
         if (state == ButtonStates::CHECKED) {
@@ -14,9 +22,9 @@
     }
 
     void Button::run(sf::RenderWindow *window) {
-        const sf::Vector2i mousePosition = Scaler::scaleV(sf::Mouse::getPosition(*window));
-        const sf::Vector2f buttonPosition = Scaler::scaleV<float>(getPosition());
-        const sf::Vector2u buttonSize = Scaler::scaleV(renderTexture.getSize());
+        const sf::Vector2i mousePosition = Scaler::restoreV(sf::Mouse::getPosition(*window));
+        const sf::Vector2f buttonPosition = getPosition();
+        const sf::Vector2u buttonSize = renderTexture.getSize();
 
         ButtonStates lastState = state;
 
@@ -49,6 +57,8 @@
             }
 
             renderTexture.clear(targetColor);
+
+            renderTexture.draw(text);
 
             renderTexture.display();
         }        

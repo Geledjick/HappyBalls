@@ -46,7 +46,7 @@ private:
     ScoreBar scoreBar;
     GameOverScene gameOverScene;
 
-    bool gameOver = false;
+    bool gameOver = true;
 
     bool lastChecked = true;
     bool ballPlaced = false;

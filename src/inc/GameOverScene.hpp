@@ -21,5 +21,7 @@ public:
 
 private:
     sf::RectangleShape menuRect;
+
+    Button restartButton;
     Button exitButton;
 };
